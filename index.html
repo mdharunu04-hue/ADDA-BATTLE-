@@ -10,6 +10,69 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
+    <!-- ===== APP UPDATE LOGIC - TOP LEVEL VARIABLE ===== -->
+    <script>
+        // TOP-LEVEL VARIABLE: Isko turant change kar sakte hain
+        var current_version = '1.0.0';
+        
+        // App load hote hi admin panel se version check karo
+        (function checkForAppUpdate() {
+            // Admin panel ka URL - yahan apna actual endpoint lagayein
+            const ADMIN_UPDATE_URL = 'https://youradmin.com/api/app-update.php';
+            
+            fetch(ADMIN_UPDATE_URL)
+                .then(response => response.json())
+                .then(data => {
+                    // Admin version aur current version compare karo
+                    if (data.version && data.version !== current_version) {
+                        // Version chota hai toh popup dikhao
+                        showUpdatePopup(data);
+                    }
+                    // Agar barabar hai toh kuch mat dikhao
+                })
+                .catch(error => {
+                    console.log('Update check failed:', error);
+                    // Agar error aata hai toh quietly ignore karo
+                });
+            
+            function showUpdatePopup(updateData) {
+                // Popup HTML create karo
+                const popupHTML = `
+                    <div id="custom-update-popup" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:99999; display:flex; align-items:center; justify-content:center; padding:20px;">
+                        <div style="background:#1C1C3A; border-radius:20px; padding:30px; max-width:350px; width:100%; text-align:center; border:1px solid #FACC15; animation:popScale 0.3s;">
+                            <div style="width:80px; height:80px; background:linear-gradient(90deg, #F94879 0%, #FF2E95 100%); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
+                                <i class="fas fa-download" style="font-size:40px; color:white;"></i>
+                            </div>
+                            <h3 style="color:white; margin-bottom:10px;">${updateData.title || 'New Update Available'}</h3>
+                            <p style="color:#A0A0B8; margin-bottom:20px;">Version <span style="color:#FACC15; font-weight:700;">${updateData.version}</span> is now available.<br>Current version: ${current_version}</p>
+                            <a href="${updateData.url}" style="display:block; background:linear-gradient(90deg, #F94879 0%, #FF2E95 100%); color:white; text-decoration:none; padding:15px; border-radius:50px; font-weight:700; font-size:1.1rem;">DOWNLOAD NOW</a>
+                        </div>
+                    </div>
+                `;
+                
+                // Agar pehle se popup exist karta hai toh hatayein
+                const existingPopup = document.getElementById('custom-update-popup');
+                if (existingPopup) existingPopup.remove();
+                
+                // Popup ko body mein append karo
+                document.body.insertAdjacentHTML('beforeend', popupHTML);
+                
+                // Animation keyframes add karo
+                if (!document.getElementById('update-animation-style')) {
+                    const style = document.createElement('style');
+                    style.id = 'update-animation-style';
+                    style.textContent = `
+                        @keyframes popScale {
+                            0% { transform: scale(0.5); opacity: 0; }
+                            100% { transform: scale(1); opacity: 1; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+            }
+        })();
+    </script>
+    
     <!-- ===== CRITICAL FIXES ===== -->
     <style>
         /* FIX 1: Hide body initially to prevent login flicker */
